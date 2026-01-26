@@ -85,10 +85,10 @@ export function TestimonialsSection() {
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {testimonials.map((testimonial) => (
+          {testimonials.map(testimonial => (
             <motion.div
               key={testimonial.author}
-              variants={cardVariants}
+              // variants={cardVariants}
               whileHover={{
                 y: -4,
                 boxShadow: "0 15px 40px -15px rgba(0,0,0,0.1)",

@@ -25,8 +25,7 @@ const features = [
   },
   {
     name: "Олон Page дэмжинэ",
-    description:
-      "Хэд ч Page холбож болно. Бүх shop-уудаа нэг дороос удирдана.",
+    description: "Хэд ч Page холбож болно. Бүх shop-уудаа нэг дороос удирдана.",
     icon: MessageCircle,
   },
   {
@@ -65,7 +64,7 @@ const cardVariants = {
     y: 0,
     transition: {
       duration: 0.5,
-      ease: "easeOut",
+      ease: [0.25, 0.46, 0.45, 0.94],
     },
   },
 };
@@ -99,10 +98,10 @@ export function FeaturesSection() {
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {features.map((feature) => (
+          {features.map(feature => (
             <motion.div
               key={feature.name}
-              variants={cardVariants}
+              // variants={cardVariants}
               whileHover={{
                 y: -6,
                 boxShadow: "0 20px 40px -15px rgba(0,0,0,0.1)",

@@ -81,10 +81,10 @@ export function ProblemSection() {
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {problems.map((problem) => (
+          {problems.map(problem => (
             <motion.div
               key={problem.title}
-              variants={cardVariants}
+              // variants={cardVariants}
               whileHover={{
                 y: -4,
                 boxShadow: "0 10px 40px -15px rgba(0,0,0,0.1)",

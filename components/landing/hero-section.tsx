@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Facebook } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 const containerVariants = {
@@ -61,21 +61,21 @@ export function HeroSection() {
           animate="visible"
         >
           <motion.div
-            variants={itemVariants}
+            // variants={itemVariants}
             className="mb-6 inline-flex items-center rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium text-muted-foreground"
           >
             <span className="mr-2 inline-block h-2 w-2 rounded-full bg-accent" />
             14 хоногийн үнэгүй турших хугацаа
           </motion.div>
           <motion.h1
-            variants={itemVariants}
+            // variants={itemVariants}
             className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
           >
             Facebook comment-д автоматаар хариулж,{" "}
             <span className="text-primary">lead алдахаа зогсоо</span>
           </motion.h1>
           <motion.p
-            variants={itemVariants}
+            // variants={itemVariants}
             className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground"
           >
             &ldquo;Үнэ хэд вэ?&rdquo;, &ldquo;Байгаа юу?&rdquo;, &ldquo;Хүргэлт
@@ -83,7 +83,7 @@ export function HeroSection() {
             боломжоо бүү алд. Монгол хэлний keyword-based автомат хариулагч.
           </motion.p>
           <motion.div
-            variants={itemVariants}
+            // variants={itemVariants}
             className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
           >
             <motion.div
@@ -92,7 +92,6 @@ export function HeroSection() {
               transition={{ duration: 0.2 }}
             >
               <Button size="lg" className="w-full sm:w-auto">
-                <Facebook className="mr-2 h-5 w-5" />
                 Facebook-ээр нэвтрэх
               </Button>
             </motion.div>
@@ -123,10 +122,10 @@ export function HeroSection() {
             { value: "50,000+", label: "автомат хариулт/сар" },
             { value: "3x", label: "илүү олон захиалга" },
             { value: "24/7", label: "тасралтгүй ажиллана" },
-          ].map((stat) => (
+          ].map(stat => (
             <motion.div
               key={stat.label}
-              variants={statItemVariants}
+              // variants={statItemVariants}
               className="text-center"
             >
               <p className="text-3xl font-bold text-foreground">{stat.value}</p>

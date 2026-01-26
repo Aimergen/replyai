@@ -106,10 +106,10 @@ export function PricingSection() {
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {plans.map((plan) => (
+          {plans.map(plan => (
             <motion.div
               key={plan.name}
-              variants={cardVariants}
+              // variants={cardVariants}
               whileHover={{
                 y: plan.highlighted ? -8 : -6,
                 boxShadow: plan.highlighted
@@ -121,7 +121,7 @@ export function PricingSection() {
                 "relative flex flex-col rounded-2xl border p-8",
                 plan.highlighted
                   ? "border-primary bg-primary text-primary-foreground shadow-xl scale-105"
-                  : "border-border bg-background"
+                  : "border-border bg-background",
               )}
             >
               {plan.highlighted && (
@@ -142,7 +142,7 @@ export function PricingSection() {
                     "text-lg font-semibold",
                     plan.highlighted
                       ? "text-primary-foreground"
-                      : "text-foreground"
+                      : "text-foreground",
                   )}
                 >
                   {plan.name}
@@ -153,7 +153,7 @@ export function PricingSection() {
                       "text-4xl font-bold",
                       plan.highlighted
                         ? "text-primary-foreground"
-                        : "text-foreground"
+                        : "text-foreground",
                     )}
                   >
                     {plan.price}
@@ -163,7 +163,7 @@ export function PricingSection() {
                       "text-sm",
                       plan.highlighted
                         ? "text-primary-foreground/80"
-                        : "text-muted-foreground"
+                        : "text-muted-foreground",
                     )}
                   >
                     {plan.period}
@@ -174,21 +174,21 @@ export function PricingSection() {
                     "mt-2 text-sm",
                     plan.highlighted
                       ? "text-primary-foreground/80"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
                   )}
                 >
                   {plan.description}
                 </p>
               </div>
               <ul className="mt-8 flex-1 space-y-4">
-                {plan.features.map((feature) => (
+                {plan.features.map(feature => (
                   <li key={feature} className="flex items-start gap-3">
                     <Check
                       className={cn(
                         "h-5 w-5 shrink-0",
                         plan.highlighted
                           ? "text-primary-foreground"
-                          : "text-primary"
+                          : "text-primary",
                       )}
                     />
                     <span
@@ -196,7 +196,7 @@ export function PricingSection() {
                         "text-sm",
                         plan.highlighted
                           ? "text-primary-foreground/90"
-                          : "text-muted-foreground"
+                          : "text-muted-foreground",
                       )}
                     >
                       {feature}
@@ -215,7 +215,7 @@ export function PricingSection() {
                     "w-full",
                     plan.highlighted
                       ? "bg-background text-foreground hover:bg-background/90"
-                      : ""
+                      : "",
                   )}
                   variant={plan.highlighted ? "secondary" : "outline"}
                 >

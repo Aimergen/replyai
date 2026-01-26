@@ -86,7 +86,7 @@ export function HowItWorksSection() {
           {steps.map((step, index) => (
             <motion.div
               key={step.title}
-              variants={stepVariants}
+              // variants={stepVariants}
               className="relative text-center"
             >
               {index < steps.length - 1 && (
