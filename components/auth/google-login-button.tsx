@@ -12,10 +12,13 @@ export function GoogleLoginButton() {
     setLoading(true);
     console.log("🔐 Google нэвтрэлт эхлэв...");
     try {
+      const REDIRECT_URL = process.env.NEXT_PUBLIC_APP_URL
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+        : `${window.location.origin}/auth/callback`; // fallback
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: REDIRECT_URL,
         },
       });
       if (error) {
