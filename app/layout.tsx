@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/theme-provider";
+import { AuthProvider } from "@/components/auth/auth-provider";
+import { Toaster } from "sonner";
 
 const roboto = Roboto({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -30,7 +32,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <AuthProvider>{children}</AuthProvider>
+        </Providers>
+        <Toaster position="top-center" richColors expand={true} />
       </body>
     </html>
   );

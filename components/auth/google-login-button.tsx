@@ -1,35 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useAuthStore } from "@/lib/store/auth-store";
 import { Button } from "@/components/ui/button";
 
 export function GoogleLoginButton() {
-  const [loading, setLoading] = useState(false);
-  const supabase = createClient();
+  const { signInWithGoogle, isLoading } = useAuthStore();
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
-    console.log("🔐 Google нэвтрэлт эхлэв...");
     try {
-      const REDIRECT_URL = process.env.NEXT_PUBLIC_APP_URL
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
-        : `${window.location.origin}/auth/callback`; // fallback
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: REDIRECT_URL,
-        },
-      });
-      if (error) {
-        console.error("❌ Google нэвтрэлтийн алдаа:", error);
-        throw error;
-      }
-      console.log("✅ Google нэвтрэлт амжилттай эхлэв");
+      await signInWithGoogle();
     } catch (error) {
       console.error("Login error:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -38,7 +19,7 @@ export function GoogleLoginButton() {
       variant="outline"
       type="button"
       onClick={handleGoogleLogin}
-      disabled={loading}
+      disabled={isLoading}
       className="w-full"
     >
       <svg
@@ -51,7 +32,7 @@ export function GoogleLoginButton() {
           fill="currentColor"
         />
       </svg>
-      {loading ? "Нэвтэрж байна..." : "Google-р нэвтрэх"}
+      {isLoading ? "Нэвтэрж байна..." : "Google-р нэвтрэх"}
     </Button>
   );
 }
