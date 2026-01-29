@@ -73,16 +73,6 @@ export const useAuthStore = create<AuthState>()(
               console.log("ℹ️ Auth initialized - Хэрэглэгч нэвтрээгүй");
             }
           }
-
-          // Listen for auth changes
-          supabase.auth.onAuthStateChange((event, session) => {
-            console.log("🔄 Auth state өөрчлөгдлөө:", event);
-            set({
-              session,
-              user: session?.user ?? null,
-              isAuthenticated: !!session?.user,
-            });
-          });
         } catch (error) {
           console.error("❌ Auth initialize алдаа:", error);
           set({ user: null, session: null, isAuthenticated: false });
@@ -98,16 +88,21 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           console.log("🔐 Google нэвтрэлт эхлэв...");
+
+          // window.location.origin ашиглах нь local болон production аль алинд зөв ажиллана
+          const redirectUrl = `${window.location.origin}/auth/callback`;
+          console.log("🔗 Redirect URL:", redirectUrl);
+
           const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-              redirectTo: `${window.location.origin}/auth/callback`,
+              redirectTo: redirectUrl,
             },
           });
 
           if (error) {
             console.error("❌ Google нэвтрэлтийн алдаа:", error);
-            throw error;
+            toast.error("Google нэвтрэлтийн алдаа гарлаа");
           }
           console.log("✅ Google нэвтрэлт амжилттай эхлэв");
           toast.success("Google нэвтрэлт амжилттай");

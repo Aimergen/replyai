@@ -1,3 +1,5 @@
+"use client";
+
 import {
   MessageSquare,
   TrendingUp,
@@ -10,126 +12,51 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { useEffect, useState } from "react";
+import ConnectFacebook from "@/components/modal/connect-facebook";
+import { createClient } from "@/lib/supabase/client";
 
-export default async function DashboardPage() {
-  const supabase = await createClient();
+export default function DashboardPage() {
+  const supabase = createClient();
+  const [loading, setLoading] = useState(false);
+  const [connectOpen, setConnectOpen] = useState(false);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
-
-  // Fetch user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  // Fetch stats
-  const { count: rulesCount } = await supabase
-    .from("reply_rules")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("is_active", true);
-
-  const { count: pagesCount } = await supabase
-    .from("facebook_pages")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("is_active", true);
-
-  const { count: totalReplies } = await supabase
-    .from("reply_logs")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
-  // Get today's replies count
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const { count: todayReplies } = await supabase
-    .from("reply_logs")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .gte("created_at", today.toISOString());
-
-  // Fetch recent activity
-  const { data: recentActivity } = await supabase
-    .from("reply_logs")
-    .select(
-      `
-      id,
-      original_comment,
-      reply_sent,
-      commenter_name,
-      created_at,
-      reply_rules (keyword),
-      facebook_pages (page_name)
-    `,
-    )
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(5);
-
-  const stats = [
-    {
-      title: "Өнөөдөр илгээсэн",
-      value: todayReplies?.toString() || "0",
-      icon: MessageSquare,
-    },
-    {
-      title: "Нийт хариулт",
-      value: totalReplies?.toLocaleString() || "0",
-      icon: TrendingUp,
-    },
-    {
-      title: "Идэвхтэй дүрэм",
-      value: rulesCount?.toString() || "0",
-      icon: FileText,
-    },
-    {
-      title: "Холбогдсон хуудас",
-      value: pagesCount?.toString() || "0",
-      icon: Facebook,
-    },
-  ];
-
-  const userName =
-    profile?.full_name || user.user_metadata?.full_name || "Хэрэглэгч";
-
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60),
-    );
-
-    if (diffInMinutes < 1) return "Саяхан";
-    if (diffInMinutes < 60) return `${diffInMinutes} минутын өмнө`;
-    if (diffInMinutes < 1440)
-      return `${Math.floor(diffInMinutes / 60)} цагийн өмнө`;
-    return `${Math.floor(diffInMinutes / 1440)} өдрийн өмнө`;
+  const getUser = async () => {
+    try {
+      setLoading(true);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      console.log("----- RES ----", user);
+    } catch (error) {
+      console.error("❌ User fetch алдаа:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    getUser();
+  }, []);
 
   return (
     <div className="space-y-6">
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6">
           <div>
-            <h2 className="text-lg font-semibold">Тавтай морил, {userName}!</h2>
+            <h2 className="text-lg font-semibold">Тавтай морил,!</h2>
+            {/* <h2 className="text-lg font-semibold">Тавтай морил, {userName}!</h2> */}
             <p className="text-sm text-muted-foreground">
+              Facebook хуудсаа холбож, автомат хариулт эхлүүлээрэй.
+            </p>
+            {/* <p className="text-sm text-muted-foreground">
               {pagesCount && pagesCount > 0
                 ? "Таны autoreply.mn tool идэвхжлээ. Одоо comment-үүдэд автоматаар хариулж эхэллээ."
                 : "Facebook хуудсаа холбож, автомат хариулт эхлүүлээрэй."}
-            </p>
+            </p> */}
           </div>
-          <Button asChild>
-            <Link
+          <Button onClick={() => setConnectOpen(true)}>
+            {/* <Link
               href={
                 pagesCount && pagesCount > 0
                   ? "/dashboard/rules"
@@ -140,12 +67,19 @@ export default async function DashboardPage() {
               {pagesCount && pagesCount > 0
                 ? "Шинэ дүрэм нэмэх"
                 : "Хуудас холбох"}
-            </Link>
+            </Link> */}
+            <Plus className="h-4 w-4 mr-2" />
+            Хуудас холбох
+            {/* {pagesCount && pagesCount > 0
+              ? "Шинэ дүрэм нэмэх"
+              : "Хуудас холбох"} */}
           </Button>
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <ConnectFacebook open={connectOpen} setOpen={setConnectOpen} />
+
+      {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(stat => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -161,9 +95,9 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
         ))}
-      </div>
+      </div> */}
 
-      <Card>
+      {/* <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Сүүлийн үйлдлүүд</CardTitle>
           <Button variant="ghost" size="sm" asChild>
@@ -182,15 +116,15 @@ export default async function DashboardPage() {
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
                       <Facebook className="h-4 w-4 text-primary" />
                     </div>
-                    {/* <span className="text-sm font-medium truncate">
+                    <span className="text-sm font-medium truncate">
                       {(activity.facebook_pages as { page_name: string } | null)
                         ?.page_name || "Хуудас"}
-                    </span> */}
+                    </span>
                   </div>
-                  {/* <Badge variant="outline" className="w-fit">
+                  <Badge variant="outline" className="w-fit">
                     {(activity.reply_rules as { keyword: string } | null)
                       ?.keyword || "keyword"}
-                  </Badge> */}
+                  </Badge>
                   <p className="flex-1 text-sm text-muted-foreground truncate">
                     {activity.reply_sent}
                   </p>
@@ -212,7 +146,7 @@ export default async function DashboardPage() {
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }
