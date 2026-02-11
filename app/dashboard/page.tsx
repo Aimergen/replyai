@@ -12,32 +12,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import ConnectFacebook from "@/components/modal/connect-facebook";
 import { createClient } from "@/lib/supabase/client";
+import { useAuthStore } from "@/lib/store/auth-store";
 
 export default function DashboardPage() {
-  const supabase = createClient();
+  // Supabase client-ийг useMemo-р хадгалах (re-render бүрт шинээр үүсгэхгүй)
+  const supabase = useMemo(() => createClient(), []);
   const [loading, setLoading] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
+  const { user } = useAuthStore();
 
-  const getUser = async () => {
+  const getUser = useCallback(async () => {
     try {
       setLoading(true);
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser();
-      console.log("----- RES ----", user);
+
+      if (error) {
+        console.error("❌ User fetch алдаа:", error.message);
+        return;
+      }
+
+      console.log("✅ User fetched:", user?.email);
     } catch (error) {
       console.error("❌ User fetch алдаа:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
 
   useEffect(() => {
     getUser();
-  }, []);
+  }, [getUser]);
 
   return (
     <div className="space-y-6">

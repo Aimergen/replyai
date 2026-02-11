@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,21 +11,21 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
-type ConnectFacebookProps = {
+interface ConnectFacebookProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-};
+}
 
 const ConnectFacebook = ({ open, setOpen }: ConnectFacebookProps) => {
-  const supabase = createClient();
-
+  const supabase = useMemo(() => createClient(), []);
   const [loading, setLoading] = useState(false);
 
-  const handleConnect = async () => {
+  const handleConnect = useCallback(async () => {
     setLoading(true);
     try {
-      await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
         options: {
           redirectTo: `${window.location.origin}/auth/facebook-callback`,
@@ -33,12 +33,18 @@ const ConnectFacebook = ({ open, setOpen }: ConnectFacebookProps) => {
             "pages_show_list,pages_read_engagement,pages_manage_metadata,pages_manage_posts",
         },
       });
+
+      if (error) {
+        console.error("❌ Facebook connect error:", error.message);
+        toast.error("Холбогдоход алдаа гарлаа");
+      }
     } catch (err) {
-      console.error(err);
+      console.error("❌ Unexpected error:", err);
+      toast.error("Төхөөрөмжгүй алдаа гарлаа");
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
 
   if (!open) return null;
   return (

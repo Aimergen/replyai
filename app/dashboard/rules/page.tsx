@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Plus,
   Search,
@@ -9,7 +9,7 @@ import {
   Trash2,
   Copy,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -31,10 +31,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 
-const initialRules = [
+// Rule interface for type safety
+interface Rule {
+  id: number;
+  keyword: string;
+  reply: string;
+  active: boolean;
+  usageCount: number;
+}
+
+const initialRules: Rule[] = [
   {
     id: 1,
     keyword: "үнэ",
@@ -84,191 +91,194 @@ const initialRules = [
   },
 ];
 
-const Loading = () => null;
-
 export default function RulesPage() {
-  const [rules, setRules] = useState(initialRules);
+  const [rules, setRules] = useState<Rule[]>(initialRules);
   const [searchQuery, setSearchQuery] = useState("");
   const [newKeyword, setNewKeyword] = useState("");
   const [newReply, setNewReply] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const searchParams = useSearchParams();
-
-  const filteredRules = rules.filter(
-    (rule) =>
-      rule.keyword.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rule.reply.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const toggleRule = (id: number) => {
-    setRules(
-      rules.map((rule) =>
-        rule.id === id ? { ...rule, active: !rule.active } : rule
-      )
+  // useMemo for filtered rules - re-compute only when rules or searchQuery changes
+  const filteredRules = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return rules.filter(
+      rule =>
+        rule.keyword.toLowerCase().includes(query) ||
+        rule.reply.toLowerCase().includes(query),
     );
-  };
+  }, [rules, searchQuery]);
 
-  const addRule = () => {
-    if (newKeyword.trim() && newReply.trim()) {
-      setRules([
-        ...rules,
-        {
-          id: Date.now(),
-          keyword: newKeyword.trim(),
-          reply: newReply.trim(),
-          active: true,
-          usageCount: 0,
-        },
-      ]);
-      setNewKeyword("");
-      setNewReply("");
-      setDialogOpen(false);
+  const toggleRule = useCallback((id: number) => {
+    setRules(prevRules =>
+      prevRules.map(rule =>
+        rule.id === id ? { ...rule, active: !rule.active } : rule,
+      ),
+    );
+  }, []);
+
+  const addRule = useCallback(() => {
+    const trimmedKeyword = newKeyword.trim();
+    const trimmedReply = newReply.trim();
+
+    if (!trimmedKeyword || !trimmedReply) {
+      return;
     }
-  };
 
-  const deleteRule = (id: number) => {
-    setRules(rules.filter((rule) => rule.id !== id));
-  };
+    setRules(prevRules => [
+      ...prevRules,
+      {
+        id: Date.now(),
+        keyword: trimmedKeyword,
+        reply: trimmedReply,
+        active: true,
+        usageCount: 0,
+      },
+    ]);
+    setNewKeyword("");
+    setNewReply("");
+    setDialogOpen(false);
+  }, [newKeyword, newReply]);
+
+  const deleteRule = useCallback((id: number) => {
+    setRules(prevRules => prevRules.filter(rule => rule.id !== id));
+  }, []);
 
   return (
-    <Suspense fallback={<Loading />}>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Дүрмүүд</h1>
-            <p className="text-muted-foreground">
-              Keyword болон автомат хариултуудаа тохируулаарай
-            </p>
-          </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Шинэ дүрэм нэмэх
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Шинэ дүрэм үүсгэх</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="keyword">Keyword</Label>
-                  <Input
-                    id="keyword"
-                    placeholder="Жишээ: үнэ, захиалга, хүргэлт"
-                    value={newKeyword}
-                    onChange={(e) => setNewKeyword(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Comment-д энэ үг байвал автоматаар хариулна
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Дүрмүүд</h1>
+          <p className="text-muted-foreground">
+            Keyword болон автомат хариултуудаа тохируулаарай
+          </p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Шинэ дүрэм нэмэх
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Шинэ дүрэм үүсгэх</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="keyword">Keyword</Label>
+                <Input
+                  id="keyword"
+                  placeholder="Жишээ: үнэ, захиалга, хүргэлт"
+                  value={newKeyword}
+                  onChange={e => setNewKeyword(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Comment-д энэ үг байвал автоматаар хариулна
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reply">Хариулт</Label>
+                <Textarea
+                  id="reply"
+                  placeholder="Автоматаар илгээх хариултаа бичнэ үү..."
+                  rows={4}
+                  value={newReply}
+                  onChange={e => setNewReply(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Болих</Button>
+              </DialogClose>
+              <Button onClick={addRule}>Хадгалах</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Дүрэм хайх..."
+          className="pl-10"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-3">
+        {filteredRules.map(rule => (
+          <Card key={rule.id}>
+            <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4 py-4">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <Switch
+                  checked={rule.active}
+                  onCheckedChange={() => toggleRule(rule.id)}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="outline" className="font-mono">
+                      {rule.keyword}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {rule.usageCount} удаа ашиглагдсан
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {rule.reply}
                   </p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reply">Хариулт</Label>
-                  <Textarea
-                    id="reply"
-                    placeholder="Автоматаар илгээх хариултаа бичнэ үү..."
-                    rows={4}
-                    value={newReply}
-                    onChange={(e) => setNewReply(e.target.value)}
-                  />
-                </div>
               </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">Болих</Button>
-                </DialogClose>
-                <Button onClick={addRule}>Хадгалах</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <Badge variant={rule.active ? "default" : "secondary"}>
+                  {rule.active ? "Идэвхтэй" : "Идэвхгүй"}
+                </Badge>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Засах
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Хуулах
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => deleteRule(rule.id)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Устгах
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Дүрэм хайх..."
-            className="pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-3">
-          {filteredRules.map((rule) => (
-            <Card key={rule.id}>
-              <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4 py-4">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <Switch
-                    checked={rule.active}
-                    onCheckedChange={() => toggleRule(rule.id)}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline" className="font-mono">
-                        {rule.keyword}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {rule.usageCount} удаа ашиглагдсан
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {rule.reply}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 self-end sm:self-auto">
-                  <Badge variant={rule.active ? "default" : "secondary"}>
-                    {rule.active ? "Идэвхтэй" : "Идэвхгүй"}
-                  </Badge>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Засах
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Хуулах
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => deleteRule(rule.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Устгах
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {filteredRules.length === 0 && (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
-                  <Search className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <h3 className="font-medium mb-1">Дүрэм олдсонгүй</h3>
-                <p className="text-sm text-muted-foreground">
-                  {searchQuery
-                    ? "Хайлтад тохирох дүрэм байхгүй байна"
-                    : "Эхний дүрмээ үүсгээрэй"}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {filteredRules.length === 0 && (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+                <Search className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="font-medium mb-1">Дүрэм олдсонгүй</h3>
+              <p className="text-sm text-muted-foreground">
+                {searchQuery
+                  ? "Хайлтад тохирох дүрэм байхгүй байна"
+                  : "Эхний дүрмээ үүсгээрэй"}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
-    </Suspense>
+    </div>
   );
 }

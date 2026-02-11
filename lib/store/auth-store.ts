@@ -48,30 +48,30 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
 
         try {
-          // Get current session
+          // Use getUser() instead of getSession() for security
+          // getSession() reads from storage which can be tampered with
           const {
-            data: { session },
+            data: { user },
             error,
-          } = await supabase.auth.getSession();
+          } = await supabase.auth.getUser();
 
           if (error) {
-            console.error("❌ Auth initialize алдаа:", error);
+            console.error("❌ Auth initialize алдаа:", error.message);
             set({ user: null, session: null, isAuthenticated: false });
-          } else {
+          } else if (user) {
+            // Get session for token access if needed
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
             set({
               session,
-              user: session?.user ?? null,
-              isAuthenticated: !!session?.user,
+              user,
+              isAuthenticated: true,
             });
-            if (session?.user) {
-              console.log(
-                "✅ Auth initialized - Хэрэглэгч:",
-                session.user.email,
-              );
-              toast.success("Хэрэглэгч амжилттай нэвтэрлээ");
-            } else {
-              console.log("ℹ️ Auth initialized - Хэрэглэгч нэвтрээгүй");
-            }
+            console.log("✅ Auth initialized:", user.email);
+          } else {
+            set({ user: null, session: null, isAuthenticated: false });
+            console.log("ℹ️ Auth initialized - Хэрэглэгч нэвтрээгүй");
           }
         } catch (error) {
           console.error("❌ Auth initialize алдаа:", error);
