@@ -49,6 +49,8 @@ export default function DashboardPage() {
     getUser();
   }, [getUser]);
 
+  console.log("----------- FIRST MAIN BRANCH MERGE ----------");
+
   return (
     <div className="space-y-6">
       <Card className="border-primary/20 bg-primary/5">

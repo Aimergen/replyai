@@ -1,4 +1,11 @@
-import { Facebook, Plus, MoreHorizontal, Pause, Trash2, Play } from "lucide-react";
+import {
+  Facebook,
+  Plus,
+  MoreHorizontal,
+  Pause,
+  Trash2,
+  Play,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,13 +39,13 @@ export default async function PagesPage() {
 
   // Get reply counts for each page
   const pagesWithReplies = await Promise.all(
-    (connectedPages || []).map(async (page) => {
+    (connectedPages || []).map(async page => {
       const { count } = await supabase
         .from("reply_logs")
         .select("*", { count: "exact", head: true })
         .eq("page_id", page.id);
       return { ...page, repliesSent: count || 0 };
-    })
+    }),
   );
 
   const formatFollowers = (count: number) => {
@@ -64,6 +71,8 @@ export default async function PagesPage() {
     revalidatePath("/dashboard/pages");
   }
 
+  console.log("----------- HELLO MERGE ---------");
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -80,7 +89,7 @@ export default async function PagesPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {pagesWithReplies.map((page) => (
+        {pagesWithReplies.map(page => (
           <Card key={page.id}>
             <CardHeader className="flex flex-row items-start justify-between pb-2">
               <div className="flex items-center gap-3">
@@ -103,9 +112,18 @@ export default async function PagesPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <form action={togglePageStatus.bind(null, page.id, page.is_active)}>
+                  <form
+                    action={togglePageStatus.bind(
+                      null,
+                      page.id,
+                      page.is_active,
+                    )}
+                  >
                     <DropdownMenuItem asChild>
-                      <button type="submit" className="w-full flex items-center">
+                      <button
+                        type="submit"
+                        className="w-full flex items-center"
+                      >
                         {page.is_active ? (
                           <>
                             <Pause className="h-4 w-4 mr-2" />
